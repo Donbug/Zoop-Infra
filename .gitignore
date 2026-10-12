@@ -1,0 +1,29 @@
+# 실제 환경변수
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# 인증 키
+*.pem
+*.key
+*.p12
+*.pfx
+
+# 로컬 인증정보
+secrets/
+credentials/
+
+# DB 데이터와 백업
+data/
+backups/
+*.dump
+
+# 로그 및 임시 파일
+logs/
+*.log
+*.tmp
+
+# 운영체제 파일
+.DS_Store
+Thumbs.db
