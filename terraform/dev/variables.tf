@@ -37,3 +37,45 @@ variable "ai_container_port" {
     error_message = "AI container port must be between 1 and 65535."
   }
 }
+
+variable "rds_engine_version" {
+  description = "PostgreSQL major engine version"
+  type        = string
+  default     = "16"
+}
+
+variable "rds_instance_class" {
+  description = "RDS PostgreSQL instance class"
+  type        = string
+  default     = "db.t4g.micro"
+}
+
+variable "rds_database_name" {
+  description = "Initial PostgreSQL database name"
+  type        = string
+  default     = "zoop"
+}
+
+variable "rds_master_username" {
+  description = "PostgreSQL master username"
+  type        = string
+  default     = "zoop_admin"
+}
+
+variable "rds_allocated_storage" {
+  description = "Initial RDS storage size in GiB"
+  type        = number
+  default     = 20
+}
+
+variable "rds_max_allocated_storage" {
+  description = "Maximum RDS autoscaling storage size in GiB"
+  type        = number
+  default     = 100
+}
+
+variable "rds_backup_retention_period" {
+  description = "RDS automated backup retention period in days"
+  type        = number
+  default     = 1
+}

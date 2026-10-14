@@ -69,3 +69,28 @@ output "api_http_listener_arn" {
   description = "API HTTP listener ARN"
   value       = aws_lb_listener.http.arn
 }
+
+output "rds_postgres_endpoint" {
+  description = "RDS PostgreSQL connection endpoint"
+  value       = aws_db_instance.postgres.endpoint
+}
+
+output "rds_postgres_address" {
+  description = "RDS PostgreSQL hostname"
+  value       = aws_db_instance.postgres.address
+}
+
+output "rds_postgres_port" {
+  description = "RDS PostgreSQL port"
+  value       = aws_db_instance.postgres.port
+}
+
+output "rds_postgres_database_name" {
+  description = "Initial PostgreSQL database name"
+  value       = aws_db_instance.postgres.db_name
+}
+
+output "rds_postgres_secret_arn" {
+  description = "Secrets Manager ARN containing the RDS master credentials"
+  value       = aws_db_instance.postgres.master_user_secret[0].secret_arn
+}
