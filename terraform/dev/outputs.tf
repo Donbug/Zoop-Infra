@@ -94,3 +94,18 @@ output "rds_postgres_secret_arn" {
   description = "Secrets Manager ARN containing the RDS master credentials"
   value       = aws_db_instance.postgres.master_user_secret[0].secret_arn
 }
+
+output "valkey_primary_endpoint" {
+  description = "ElastiCache Valkey primary endpoint"
+  value       = aws_elasticache_replication_group.valkey.primary_endpoint_address
+}
+
+output "valkey_port" {
+  description = "ElastiCache Valkey port"
+  value       = aws_elasticache_replication_group.valkey.port
+}
+
+output "valkey_replication_group_arn" {
+  description = "ElastiCache Valkey replication group ARN"
+  value       = aws_elasticache_replication_group.valkey.arn
+}

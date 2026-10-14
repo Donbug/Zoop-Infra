@@ -79,3 +79,21 @@ variable "rds_backup_retention_period" {
   type        = number
   default     = 1
 }
+
+variable "valkey_engine_version" {
+  description = "ElastiCache Valkey engine version"
+  type        = string
+  default     = "7.2"
+}
+
+variable "valkey_node_type" {
+  description = "ElastiCache Valkey node type"
+  type        = string
+  default     = "cache.t4g.micro"
+}
+
+variable "valkey_port" {
+  description = "ElastiCache Valkey port"
+  type        = number
+  default     = 6379
+}
