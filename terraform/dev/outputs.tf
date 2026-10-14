@@ -34,3 +34,18 @@ output "ecs_log_group_names" {
     service => log_group.name
   }
 }
+
+output "ecs_task_execution_role_arn" {
+  description = "ECS task execution role ARN"
+  value       = aws_iam_role.ecs_task_execution.arn
+}
+
+output "api_task_role_arn" {
+  description = "API ECS task role ARN"
+  value       = aws_iam_role.api_task.arn
+}
+
+output "ai_task_role_arn" {
+  description = "AI ECS task role ARN"
+  value       = aws_iam_role.ai_task.arn
+}
