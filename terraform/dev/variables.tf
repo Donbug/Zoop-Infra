@@ -97,3 +97,21 @@ variable "valkey_port" {
   type        = number
   default     = 6379
 }
+
+variable "neo4j_instance_type" {
+  description = "EC2 instance type for the Neo4j host"
+  type        = string
+  default     = "t3.small"
+}
+
+variable "neo4j_root_volume_size" {
+  description = "Neo4j EC2 root volume size in GiB"
+  type        = number
+  default     = 10
+}
+
+variable "neo4j_data_volume_size" {
+  description = "Neo4j data EBS volume size in GiB"
+  type        = number
+  default     = 20
+}

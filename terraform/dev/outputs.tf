@@ -109,3 +109,23 @@ output "valkey_replication_group_arn" {
   description = "ElastiCache Valkey replication group ARN"
   value       = aws_elasticache_replication_group.valkey.arn
 }
+
+output "neo4j_instance_id" {
+  description = "Neo4j EC2 instance ID"
+  value       = aws_instance.neo4j.id
+}
+
+output "neo4j_private_ip" {
+  description = "Neo4j EC2 private IP address"
+  value       = aws_instance.neo4j.private_ip
+}
+
+output "neo4j_data_volume_id" {
+  description = "Neo4j data EBS volume ID"
+  value       = aws_ebs_volume.neo4j_data.id
+}
+
+output "neo4j_ssm_role_arn" {
+  description = "Neo4j EC2 SSM IAM role ARN"
+  value       = aws_iam_role.neo4j_ssm.arn
+}
