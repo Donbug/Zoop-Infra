@@ -115,3 +115,53 @@ variable "neo4j_data_volume_size" {
   type        = number
   default     = 20
 }
+
+# API ECS Task
+variable "api_task_cpu" {
+  description = "CPU units for the API ECS task"
+  type        = number
+  default     = 512
+}
+
+variable "api_task_memory" {
+  description = "Memory in MiB for the API ECS task"
+  type        = number
+  default     = 1024
+}
+
+variable "api_image_tag" {
+  description = "ECR image tag used by the API ECS task"
+  type        = string
+  default     = "bootstrap"
+}
+
+variable "api_desired_count" {
+  description = "Desired number of API ECS tasks"
+  type        = number
+  default     = 0
+}
+
+# AI ECS Task
+variable "ai_task_cpu" {
+  description = "CPU units for the AI ECS task"
+  type        = number
+  default     = 1024
+}
+
+variable "ai_task_memory" {
+  description = "Memory in MiB for the AI ECS task"
+  type        = number
+  default     = 2048
+}
+
+variable "ai_image_tag" {
+  description = "ECR image tag used by the AI ECS task"
+  type        = string
+  default     = "bootstrap"
+}
+
+variable "ai_desired_count" {
+  description = "Desired number of AI ECS tasks"
+  type        = number
+  default     = 0
+}

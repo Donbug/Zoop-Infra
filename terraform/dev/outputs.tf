@@ -129,3 +129,30 @@ output "neo4j_ssm_role_arn" {
   description = "Neo4j EC2 SSM IAM role ARN"
   value       = aws_iam_role.neo4j_ssm.arn
 }
+
+# ECS Task Definitions
+output "api_task_definition_arn" {
+  description = "ARN of the API ECS task definition"
+  value       = aws_ecs_task_definition.api.arn
+}
+
+output "ai_task_definition_arn" {
+  description = "ARN of the AI ECS task definition"
+  value       = aws_ecs_task_definition.ai.arn
+}
+
+# ECS Services
+output "api_ecs_service_name" {
+  description = "Name of the API ECS service"
+  value       = aws_ecs_service.api.name
+}
+
+output "ai_ecs_service_name" {
+  description = "Name of the AI ECS service"
+  value       = aws_ecs_service.ai.name
+}
+
+output "ai_service_connect_endpoint" {
+  description = "Internal Service Connect endpoint for the AI service"
+  value       = "ai:${var.ai_container_port}"
+}
