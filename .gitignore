@@ -19,7 +19,7 @@ data/
 backups/
 *.dump
 
-# 로그·임시 파일
+# 로그 및 임시 파일
 logs/
 *.log
 *.tmp
@@ -27,3 +27,17 @@ logs/
 # 운영체제 파일
 .DS_Store
 Thumbs.db
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
