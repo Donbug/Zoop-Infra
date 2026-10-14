@@ -49,3 +49,23 @@ output "ai_task_role_arn" {
   description = "AI ECS task role ARN"
   value       = aws_iam_role.ai_task.arn
 }
+
+output "internal_alb_arn" {
+  description = "Internal API Application Load Balancer ARN"
+  value       = aws_lb.api.arn
+}
+
+output "internal_alb_dns_name" {
+  description = "Internal API Application Load Balancer DNS name"
+  value       = aws_lb.api.dns_name
+}
+
+output "api_target_group_arn" {
+  description = "API target group ARN"
+  value       = aws_lb_target_group.api.arn
+}
+
+output "api_http_listener_arn" {
+  description = "API HTTP listener ARN"
+  value       = aws_lb_listener.http.arn
+}
