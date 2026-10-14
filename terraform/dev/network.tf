@@ -148,9 +148,14 @@ resource "aws_route_table_association" "private_app_c" {
 }
 
 # Private DB Subnet용 Route Table
-# 인터넷으로 향하는 기본 경로는 추가하지 않는다.
+# Neo4j EC2의 SSM 및 외부 서비스 접근은 NAT Gateway를 사용한다.
 resource "aws_route_table" "private_db" {
   vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.main.id
+  }
 
   tags = {
     Name = "${var.project_name}-${var.environment}-private-db-rt"
@@ -174,7 +179,8 @@ resource "aws_vpc_endpoint" "s3" {
   vpc_endpoint_type = "Gateway"
 
   route_table_ids = [
-    aws_route_table.private_app.id
+    aws_route_table.private_app.id,
+    aws_route_table.private_db.id
   ]
 
   tags = {
