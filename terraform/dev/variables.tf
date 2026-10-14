@@ -15,3 +15,25 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
+
+variable "api_container_port" {
+  description = "API Fargate container port"
+  type        = number
+  default     = 8080
+
+  validation {
+    condition     = var.api_container_port >= 1 && var.api_container_port <= 65535
+    error_message = "API container port must be between 1 and 65535."
+  }
+}
+
+variable "ai_container_port" {
+  description = "AI Fargate container port"
+  type        = number
+  default     = 8000
+
+  validation {
+    condition     = var.ai_container_port >= 1 && var.ai_container_port <= 65535
+    error_message = "AI container port must be between 1 and 65535."
+  }
+}
