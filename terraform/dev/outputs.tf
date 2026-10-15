@@ -156,3 +156,25 @@ output "ai_service_connect_endpoint" {
   description = "Internal Service Connect endpoint for the AI service"
   value       = "ai:${var.ai_container_port}"
 }
+
+# CloudFront VPC Origin
+output "cloudfront_vpc_origin_id" {
+  description = "ID of the CloudFront VPC origin for the internal ALB"
+  value       = aws_cloudfront_vpc_origin.api.id
+}
+
+# CloudFront Distribution
+output "cloudfront_distribution_id" {
+  description = "ID of the API CloudFront distribution"
+  value       = aws_cloudfront_distribution.api.id
+}
+
+output "cloudfront_domain_name" {
+  description = "Domain name of the API CloudFront distribution"
+  value       = aws_cloudfront_distribution.api.domain_name
+}
+
+output "cloudfront_api_url" {
+  description = "HTTPS URL of the API CloudFront distribution"
+  value       = "https://${aws_cloudfront_distribution.api.domain_name}"
+}

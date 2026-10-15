@@ -69,8 +69,8 @@ resource "aws_security_group" "redis" {
 
 resource "aws_vpc_security_group_ingress_rule" "alb_http_from_vpc" {
   security_group_id = aws_security_group.alb.id
-  description       = "Allow HTTP from within the VPC"
-  cidr_ipv4         = aws_vpc.main.cidr_block
+  description       = "Allow HTTP from CloudFront origin-facing servers"
+  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
   from_port         = 80
   to_port           = 80
   ip_protocol       = "tcp"
