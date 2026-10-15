@@ -25,12 +25,73 @@ resource "aws_iam_role_policy_attachment" "neo4j_ssm_core" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+ephemeral "random_password" "neo4j" {
+  length  = 32
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "neo4j_auth" {
+  name                    = "${local.ecs_name}/neo4j/auth"
+  description             = "Authentication credentials for the Dev Neo4j instance"
+  recovery_window_in_days = 0
+
+  tags = {
+    Name    = "${local.ecs_name}-neo4j-auth"
+    Service = "neo4j"
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "neo4j_auth" {
+  secret_id = aws_secretsmanager_secret.neo4j_auth.id
+
+  secret_string_wo = jsonencode({
+    username = "neo4j"
+    password = ephemeral.random_password.neo4j.result
+  })
+
+  secret_string_wo_version = 1
+}
+
+data "aws_iam_policy_document" "neo4j_secret_access" {
+  statement {
+    sid    = "ReadNeo4jAuthenticationSecret"
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+
+    resources = [
+      aws_secretsmanager_secret.neo4j_auth.arn
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "neo4j_secret_access" {
+  name   = "${local.ecs_name}-neo4j-secret-access"
+  role   = aws_iam_role.neo4j_ssm.id
+  policy = data.aws_iam_policy_document.neo4j_secret_access.json
+}
+
 resource "aws_iam_instance_profile" "neo4j" {
   name = "${local.ecs_name}-neo4j-instance-profile"
   role = aws_iam_role.neo4j_ssm.name
 
   tags = {
     Name    = "${local.ecs_name}-neo4j-instance-profile"
+    Service = "neo4j"
+  }
+}
+
+resource "aws_ebs_volume" "neo4j_data" {
+  availability_zone = aws_subnet.private_db_a.availability_zone
+
+  type      = "gp3"
+  size      = var.neo4j_data_volume_size
+  encrypted = true
+
+  tags = {
+    Name    = "${local.ecs_name}-neo4j-data"
     Service = "neo4j"
   }
 }
@@ -48,7 +109,13 @@ resource "aws_instance" "neo4j" {
   associate_public_ip_address = false
   iam_instance_profile        = aws_iam_instance_profile.neo4j.name
 
-  user_data                   = file("${path.module}/user_data/neo4j.sh")
+  user_data = templatefile("${path.module}/user_data/neo4j.sh.tftpl", {
+    aws_region           = var.aws_region
+    neo4j_secret_arn     = aws_secretsmanager_secret.neo4j_auth.arn
+    neo4j_data_volume_id = aws_ebs_volume.neo4j_data.id
+    neo4j_image          = "neo4j:5.26.32"
+  })
+
   user_data_replace_on_change = true
 
   monitoring    = false
@@ -68,24 +135,13 @@ resource "aws_instance" "neo4j" {
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.neo4j_ssm_core
+    aws_iam_role_policy_attachment.neo4j_ssm_core,
+    aws_iam_role_policy.neo4j_secret_access,
+    aws_secretsmanager_secret_version.neo4j_auth
   ]
 
   tags = {
     Name    = "${local.ecs_name}-neo4j"
-    Service = "neo4j"
-  }
-}
-
-resource "aws_ebs_volume" "neo4j_data" {
-  availability_zone = aws_subnet.private_db_a.availability_zone
-
-  type      = "gp3"
-  size      = var.neo4j_data_volume_size
-  encrypted = true
-
-  tags = {
-    Name    = "${local.ecs_name}-neo4j-data"
     Service = "neo4j"
   }
 }
