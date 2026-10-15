@@ -1,0 +1,114 @@
+#!/bin/bash
+
+set -euo pipefail
+
+exec > >(tee /var/log/neo4j-user-data.log | logger -t neo4j-user-data -s 2>/dev/console) 2>&1
+
+AWS_REGION="${aws_region}"
+NEO4J_SECRET_ARN="${neo4j_secret_arn}"
+NEO4J_DATA_VOLUME_ID="${neo4j_data_volume_id}"
+NEO4J_IMAGE="${neo4j_image}"
+NEO4J_MOUNT_POINT="/opt/neo4j"
+
+dnf install -y docker awscli jq xfsprogs
+
+systemctl enable --now docker
+systemctl enable --now amazon-ssm-agent || true
+
+usermod -aG docker ec2-user
+
+TARGET_SERIAL="$(printf '%s' "$NEO4J_DATA_VOLUME_ID" | tr -d '-')"
+NEO4J_DEVICE=""
+
+for attempt in $(seq 1 60); do
+  NEO4J_DEVICE="$(
+    lsblk -ndo PATH,SERIAL |
+      awk -v serial="$TARGET_SERIAL" '$2 == serial { print $1; exit }'
+  )"
+
+  if [ -n "$NEO4J_DEVICE" ]; then
+    break
+  fi
+
+  echo "Waiting for EBS volume $NEO4J_DATA_VOLUME_ID ($attempt/60)"
+  sleep 10
+done
+
+if [ -z "$NEO4J_DEVICE" ]; then
+  echo "Timed out waiting for EBS volume $NEO4J_DATA_VOLUME_ID"
+  exit 1
+fi
+
+FILESYSTEM_TYPE="$(blkid -s TYPE -o value "$NEO4J_DEVICE" 2>/dev/null || true)"
+
+if [ -z "$FILESYSTEM_TYPE" ]; then
+  mkfs.xfs "$NEO4J_DEVICE"
+  FILESYSTEM_TYPE="xfs"
+fi
+
+FILESYSTEM_UUID="$(blkid -s UUID -o value "$NEO4J_DEVICE")"
+
+mkdir -p "$NEO4J_MOUNT_POINT"
+
+if ! grep -q "UUID=$FILESYSTEM_UUID " /etc/fstab; then
+  echo "UUID=$FILESYSTEM_UUID $NEO4J_MOUNT_POINT $FILESYSTEM_TYPE defaults,nofail 0 2" >> /etc/fstab
+fi
+
+if ! mountpoint -q "$NEO4J_MOUNT_POINT"; then
+  mount "$NEO4J_MOUNT_POINT"
+fi
+
+mkdir -p \
+  "$NEO4J_MOUNT_POINT/data" \
+  "$NEO4J_MOUNT_POINT/logs"
+
+chown -R 7474:7474 "$NEO4J_MOUNT_POINT"
+
+NEO4J_SECRET_JSON=""
+
+for attempt in $(seq 1 30); do
+  if NEO4J_SECRET_JSON="$(
+    aws secretsmanager get-secret-value \
+      --region "$AWS_REGION" \
+      --secret-id "$NEO4J_SECRET_ARN" \
+      --query SecretString \
+      --output text 2>/dev/null
+  )"; then
+    break
+  fi
+
+  echo "Waiting for Neo4j secret access ($attempt/30)"
+  sleep 10
+done
+
+if [ -z "$NEO4J_SECRET_JSON" ] || [ "$NEO4J_SECRET_JSON" = "None" ]; then
+  echo "Unable to retrieve the Neo4j authentication secret"
+  exit 1
+fi
+
+NEO4J_PASSWORD="$(
+  printf '%s' "$NEO4J_SECRET_JSON" |
+    jq -er '.password | select(type == "string" and length >= 8)'
+)"
+
+docker pull "$NEO4J_IMAGE"
+docker rm -f neo4j >/dev/null 2>&1 || true
+
+docker run --detach \
+  --name neo4j \
+  --restart unless-stopped \
+  --publish 7474:7474 \
+  --publish 7687:7687 \
+  --memory 1536m \
+  --env "NEO4J_AUTH=neo4j/$NEO4J_PASSWORD" \
+  --env "NEO4J_server_memory_heap_initial__size=512m" \
+  --env "NEO4J_server_memory_heap_max__size=512m" \
+  --env "NEO4J_server_memory_pagecache_size=512m" \
+  --volume "$NEO4J_MOUNT_POINT/data:/data" \
+  --volume "$NEO4J_MOUNT_POINT/logs:/logs" \
+  "$NEO4J_IMAGE"
+
+unset NEO4J_PASSWORD
+unset NEO4J_SECRET_JSON
+
+docker ps --filter name=neo4j
