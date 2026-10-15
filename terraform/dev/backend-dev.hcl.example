@@ -1,0 +1,5 @@
+bucket       = "zoop-dev-terraform-state-REPLACE_WITH_AWS_ACCOUNT_ID"
+key          = "zoop/dev/terraform.tfstate"
+region       = "ap-northeast-2"
+encrypt      = true
+use_lockfile = true

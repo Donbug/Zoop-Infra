@@ -43,3 +43,7 @@ override.tf.json
 *_override.tf.json
 # Terraform plan files
 *.tfplan
+
+# Terraform backend configuration
+backend-*.hcl
+!backend-*.hcl.example
