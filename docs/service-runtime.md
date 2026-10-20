@@ -11,7 +11,7 @@
 | 프론트엔드 | Donbug/Zoop-Frontend | 미정 | 미정 | 미정 | 담당자 확인 필요 |
 | 백엔드 | 미생성 | 미정 | 미정 | 미정 | 개발 준비 |
 | AI | 최종 저장소 미정 | 미정 | 미정 | 미정 | PoC와 최종 서비스 구분 필요 |
-| GraphDB | 해당 없음 | Neo4j, 버전·에디션 미정 | 미정 | 미정 | 사용 예정 |
+| GraphDB | Zoop-Infra | Neo4j Community 5.26.32 · Docker · EC2 | EC2 user data에서 실행 | 7474·7687, localhost 전용 | Terraform 준비·실제 배포 보류 |
 | 관계형 DB | 해당 없음 | 미정 | 미정 | 미정 | PostgreSQL/MySQL/MariaDB 검토 |
 
 ## 각 담당자에게 확인할 정보
