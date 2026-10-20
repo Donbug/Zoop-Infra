@@ -34,6 +34,48 @@ resource "aws_ecs_task_definition" "api" {
         }
       ]
 
+      environment = [
+        {
+          name  = "SERVER_PORT"
+          value = tostring(var.api_container_port)
+        },
+        {
+          name  = "DB_URL"
+          value = "jdbc:postgresql://${aws_db_instance.postgres.address}:${aws_db_instance.postgres.port}/${var.rds_database_name}"
+        },
+        {
+          name  = "ZOOP_AUTH_CSRF_ACTIVE_KEY_ID"
+          value = "dev-v1"
+        },
+        {
+          name  = "ZOOP_AI_CLIENT_ENABLED"
+          value = "false"
+        },
+        {
+          name  = "ZOOP_AI_EXTRACTION_CLIENT_ENABLED"
+          value = "false"
+        },
+        {
+          name  = "ZOOP_AI_RELATION_CLIENT_ENABLED"
+          value = "false"
+        }
+      ]
+
+      secrets = [
+        {
+          name      = "DB_USERNAME"
+          valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:username::"
+        },
+        {
+          name      = "DB_PASSWORD"
+          valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:password::"
+        },
+        {
+          name      = "ZOOP_AUTH_CSRF_KEYS"
+          valueFrom = aws_secretsmanager_secret.api_csrf.arn
+        }
+      ]
+
       logConfiguration = {
         logDriver = "awslogs"
 
@@ -45,6 +87,11 @@ resource "aws_ecs_task_definition" "api" {
       }
     }
   ])
+
+  depends_on = [
+    aws_iam_role_policy.api_runtime_secret_access,
+    aws_secretsmanager_secret_version.api_csrf
+  ]
 
   tags = {
     Name    = "${local.ecs_name}-api"

@@ -52,3 +52,24 @@ resource "aws_iam_role" "ai_task" {
     Service = "ai"
   }
 }
+data "aws_iam_policy_document" "api_runtime_secret_access" {
+  statement {
+    sid    = "ReadApiRuntimeSecrets"
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+
+    resources = [
+      aws_db_instance.postgres.master_user_secret[0].secret_arn,
+      aws_secretsmanager_secret.api_csrf.arn
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "api_runtime_secret_access" {
+  name   = "${local.ecs_name}-api-runtime-secret-access"
+  role   = aws_iam_role.ecs_task_execution.id
+  policy = data.aws_iam_policy_document.api_runtime_secret_access.json
+}
