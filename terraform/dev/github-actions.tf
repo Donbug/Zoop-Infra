@@ -158,6 +158,54 @@ data "aws_iam_policy_document" "github_actions_deploy" {
   }
 }
 
+resource "aws_iam_role" "github_actions_image_stage" {
+  name                 = "${local.ecs_name}-github-actions-image-stage-role"
+  description          = "Allows the Donbug/zoop dev environment to stage API images in ECR"
+  assume_role_policy   = data.aws_iam_policy_document.github_actions_assume_role.json
+  max_session_duration = 3600
+
+  tags = {
+    Name    = "${local.ecs_name}-github-actions-image-stage-role"
+    Service = "github-actions"
+    Scope   = "image-stage"
+  }
+}
+
+data "aws_iam_policy_document" "github_actions_image_stage" {
+  statement {
+    sid       = "GetECRAuthorizationToken"
+    effect    = "Allow"
+    actions   = ["ecr:GetAuthorizationToken"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "StageApiImages"
+    effect = "Allow"
+
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:BatchGetImage",
+      "ecr:CompleteLayerUpload",
+      "ecr:DescribeImages",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:InitiateLayerUpload",
+      "ecr:PutImage",
+      "ecr:UploadLayerPart"
+    ]
+
+    resources = [
+      aws_ecr_repository.service["api"].arn
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "github_actions_image_stage" {
+  name   = "${local.ecs_name}-github-actions-image-stage-policy"
+  role   = aws_iam_role.github_actions_image_stage.id
+  policy = data.aws_iam_policy_document.github_actions_image_stage.json
+}
+
 resource "aws_iam_role_policy" "github_actions_deploy" {
   name   = "${local.ecs_name}-github-actions-deploy-policy"
   role   = aws_iam_role.github_actions_deploy.id
@@ -167,4 +215,9 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
 output "github_actions_deploy_role_arn" {
   description = "IAM role ARN assumed by the Donbug/zoop GitHub Actions dev environment"
   value       = aws_iam_role.github_actions_deploy.arn
+}
+
+output "github_actions_image_stage_role_arn" {
+  description = "IAM role ARN used by Donbug/zoop GitHub Actions to stage API images in ECR"
+  value       = aws_iam_role.github_actions_image_stage.arn
 }
