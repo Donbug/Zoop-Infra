@@ -61,7 +61,7 @@ AI `graph.read` API를 활성화할 때는 별도 검토 후 최소 범위의 76
 - 데이터베이스: `neo4j`
 - Store ID: `zoop-dev-graph`
 - 최초 빈 DB 초기화: Graph Store 바인딩이 없을 때만 `preflight → init`
-- 기존 환경 재실행: 고정 URI와 동일 원장을 유지하고 `database=stored`로 멱등 `init`
+- 기존 환경 재실행: 최초 바인딩에 사용한 동일 stored URI·원장과 실제 database 값(Dev: `neo4j`)으로 멱등 `init`
 - 바인딩 충돌: `graph_store_already_bound` 발생 시 접속을 거절하고 불일치 조사
 - 데이터 보호: 기존 Neo4j 데이터와 Store ID를 초기화·삭제하거나 재바인딩하지 않음
 - 데이터 볼륨: 암호화된 EBS gp3
