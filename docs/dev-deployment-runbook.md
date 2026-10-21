@@ -389,6 +389,18 @@ aws elasticache describe-replication-groups --region ap-northeast-2
 - [ ] Neo4j Container 정상 실행
 - [ ] 비밀번호가 Secrets Manager를 통해 주입됨
 - [ ] Security Group 접근 범위 정상
+- [ ] 7474와 7687이 EC2 localhost에만 바인딩됨
+- [ ] API 및 AI Security Group에서 7687 인바운드가 허용되지 않음
+- [ ] Writer 운영자가 SSM 포트 포워딩으로만 접근 가능
+- [ ] `database=neo4j` 사용
+- [ ] `storeId=zoop-dev-graph` 사용
+- [ ] 최초 빈 DB이고 Graph Store 바인딩이 없을 때만 Writer가 `preflight → init` 순서로 실행됨
+- [ ] 기존 환경은 최초 바인딩에 사용한 동일 stored URI·원장과 실제 database 값(Dev: `neo4j`)을 그대로 사용해 멱등 `init`을 재실행하고 바인딩을 확인함
+- [ ] 기존 Neo4j 데이터와 Store ID를 초기화·삭제하거나 다른 원장으로 재바인딩하지 않음
+- [ ] `graph_store_already_bound`가 발생하면 Writer 접속을 거절하고 URI·원장·Store ID 불일치를 조사함
+- [ ] 위 재실행 절차는 정책과 소스 검토 기준이며 실제 EC2 재배포 검증은 별도로 수행함
+- [ ] TLS 인증서 방식이 확정되기 전 실제 Writer 연결을 수행하지 않음
+- [ ] EBS 스냅샷 생성 및 복구 절차 확인
 
 ### 11.6 Secrets Manager 확인
 
@@ -505,7 +517,8 @@ Invoke-RestMethod -Method Get -Uri "https://<DEV_DOMAIN>/<PUBLIC_API_PATH>"
 - [ ] 기업 목록 또는 기업 검색 API 정상
 - [ ] PostgreSQL 연결 정상
 - [ ] Valkey 연결 정상
-- [ ] Neo4j 연결 정상
+- [ ] 공개 그래프 조회가 Graph Handoff 또는 App Snapshot을 통해 정상
+- [ ] API/BFF에 Neo4j Secret과 7687 직접 접근 권한이 없음
 - [ ] 외부 API 연동 정상
 - [ ] 오류 응답에 Secret 또는 내부 연결 정보가 노출되지 않음
 

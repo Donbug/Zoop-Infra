@@ -25,7 +25,7 @@ ZOOP은 뉴스·공시 속 시장 이슈와 기업, 사용자의 관심·보유 
 | 인프라 저장소 | 생성 완료 |
 | 시스템 구성도 | 작성 완료 |
 | 서비스 실행정보 | 양식 작성, 담당자 확인 대기 |
-| GraphDB | Neo4j 사용 예정, 버전·에디션 미정 |
+| GraphDB | Neo4j Community 5.26.32 · Private EC2 · Docker · EBS gp3 · SSM 운영 |
 | 관계형 DB | PostgreSQL |
 | 백엔드 저장소 | 생성 전 |
 | AWS 사용 신청 | 제출 완료 |
