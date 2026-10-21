@@ -150,30 +150,14 @@ resource "aws_vpc_security_group_ingress_rule" "rds_from_ai" {
 
 # -------------------------------------------------------------------
 # Neo4j EC2
-# Bolt 포트만 API/AI에서 허용하며 SSH와 Browser 포트는 열지 않는다.
+# 초기 Dev 환경에서는 API/BFF와 AI 서비스의 직접 연결을 허용하지 않는다.
+# Writer 운영자는 Session Manager 포트 포워딩을 통해서만 접근한다.
+# graph.read API 활성화 시 별도 검토 후 최소 범위의 7687 규칙을 추가한다.
 # -------------------------------------------------------------------
-
-resource "aws_vpc_security_group_ingress_rule" "neo4j_from_api" {
-  security_group_id            = aws_security_group.neo4j.id
-  description                  = "Allow Neo4j Bolt traffic from the API service"
-  referenced_security_group_id = aws_security_group.api.id
-  from_port                    = 7687
-  to_port                      = 7687
-  ip_protocol                  = "tcp"
-}
-
-resource "aws_vpc_security_group_ingress_rule" "neo4j_from_ai" {
-  security_group_id            = aws_security_group.neo4j.id
-  description                  = "Allow Neo4j Bolt traffic from the AI service"
-  referenced_security_group_id = aws_security_group.ai.id
-  from_port                    = 7687
-  to_port                      = 7687
-  ip_protocol                  = "tcp"
-}
 
 resource "aws_vpc_security_group_egress_rule" "neo4j_all_egress" {
   security_group_id = aws_security_group.neo4j.id
-  description       = "Allow outbound traffic for SSM, packages, and S3 backup"
+  description       = "Allow outbound traffic for SSM, packages, and container images"
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }

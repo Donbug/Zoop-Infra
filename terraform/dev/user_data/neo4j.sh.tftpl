@@ -97,8 +97,8 @@ docker rm -f neo4j >/dev/null 2>&1 || true
 docker run --detach \
   --name neo4j \
   --restart unless-stopped \
-  --publish 7474:7474 \
-  --publish 7687:7687 \
+  --publish 127.0.0.1:7474:7474 \
+  --publish 127.0.0.1:7687:7687 \
   --memory 1536m \
   --env "NEO4J_AUTH=neo4j/$NEO4J_PASSWORD" \
   --env "NEO4J_server_memory_heap_initial__size=512m" \
