@@ -35,9 +35,14 @@ output "ecs_log_group_names" {
   }
 }
 
-output "ecs_task_execution_role_arn" {
-  description = "ECS task execution role ARN"
-  value       = aws_iam_role.ecs_task_execution.arn
+output "api_task_execution_role_arn" {
+  description = "API ECS task execution role ARN"
+  value       = aws_iam_role.api_task_execution.arn
+}
+
+output "ai_task_execution_role_arn" {
+  description = "AI ECS task execution role ARN"
+  value       = aws_iam_role.ai_task_execution.arn
 }
 
 output "api_task_role_arn" {
