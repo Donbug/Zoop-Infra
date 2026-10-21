@@ -141,7 +141,8 @@ data "aws_iam_policy_document" "github_actions_deploy" {
     actions = ["iam:PassRole"]
 
     resources = [
-      aws_iam_role.ecs_task_execution.arn,
+      aws_iam_role.api_task_execution.arn,
+      aws_iam_role.ai_task_execution.arn,
       aws_iam_role.api_task.arn,
       aws_iam_role.ai_task.arn
     ]

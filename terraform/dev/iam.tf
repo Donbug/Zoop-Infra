@@ -16,18 +16,35 @@ data "aws_iam_policy_document" "ecs_tasks_assume_role" {
   }
 }
 
-resource "aws_iam_role" "ecs_task_execution" {
-  name               = "${local.ecs_name}-task-execution-role"
-  description        = "Allows ECS to pull images and publish container logs"
+resource "aws_iam_role" "api_task_execution" {
+  name               = "${local.ecs_name}-api-task-execution-role"
+  description        = "Allows the ZOOP API task to pull images, publish logs, and read API runtime secrets"
   assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume_role.json
 
   tags = {
-    Name = "${local.ecs_name}-task-execution-role"
+    Name    = "${local.ecs_name}-api-task-execution-role"
+    Service = "api"
   }
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
-  role       = aws_iam_role.ecs_task_execution.name
+resource "aws_iam_role_policy_attachment" "api_task_execution" {
+  role       = aws_iam_role.api_task_execution.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role" "ai_task_execution" {
+  name               = "${local.ecs_name}-ai-task-execution-role"
+  description        = "Allows the ZOOP AI task to pull images and publish container logs"
+  assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume_role.json
+
+  tags = {
+    Name    = "${local.ecs_name}-ai-task-execution-role"
+    Service = "ai"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "ai_task_execution" {
+  role       = aws_iam_role.ai_task_execution.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
@@ -52,6 +69,7 @@ resource "aws_iam_role" "ai_task" {
     Service = "ai"
   }
 }
+
 data "aws_iam_policy_document" "api_runtime_secret_access" {
   statement {
     sid    = "ReadApiRuntimeSecrets"
@@ -70,6 +88,6 @@ data "aws_iam_policy_document" "api_runtime_secret_access" {
 
 resource "aws_iam_role_policy" "api_runtime_secret_access" {
   name   = "${local.ecs_name}-api-runtime-secret-access"
-  role   = aws_iam_role.ecs_task_execution.id
+  role   = aws_iam_role.api_task_execution.id
   policy = data.aws_iam_policy_document.api_runtime_secret_access.json
 }
