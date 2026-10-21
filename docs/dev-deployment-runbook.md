@@ -394,7 +394,11 @@ aws elasticache describe-replication-groups --region ap-northeast-2
 - [ ] Writer 운영자가 SSM 포트 포워딩으로만 접근 가능
 - [ ] `database=neo4j` 사용
 - [ ] `storeId=zoop-dev-graph` 사용
-- [ ] Writer가 `preflight → init` 순서로 실행됨
+- [ ] 최초 빈 DB이고 Graph Store 바인딩이 없을 때만 Writer가 `preflight → init` 순서로 실행됨
+- [ ] 기존 환경은 고정 URI와 동일 원장을 유지하고 `database=stored`로 멱등 `init`을 재실행해 바인딩을 확인함
+- [ ] 기존 Neo4j 데이터와 Store ID를 초기화·삭제하거나 다른 원장으로 재바인딩하지 않음
+- [ ] `graph_store_already_bound`가 발생하면 Writer 접속을 거절하고 URI·원장·Store ID 불일치를 조사함
+- [ ] 위 재실행 절차는 정책과 소스 검토 기준이며 실제 EC2 재배포 검증은 별도로 수행함
 - [ ] TLS 인증서 방식이 확정되기 전 실제 Writer 연결을 수행하지 않음
 - [ ] EBS 스냅샷 생성 및 복구 절차 확인
 
