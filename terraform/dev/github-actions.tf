@@ -1,9 +1,10 @@
 locals {
-  github_actions_repository  = "Donbug/zoop"
-  github_actions_environment = "dev"
-
+  # GitHub immutable OIDC identity:
   # Donbug organization ID: 331190325
   # zoop repository ID: 1399101385
+  github_actions_repository  = "Donbug@331190325/zoop@1399101385"
+  github_actions_environment = "dev"
+
   github_actions_subject = "repo:${local.github_actions_repository}:environment:${local.github_actions_environment}"
 }
 
