@@ -180,6 +180,21 @@ output "cloudfront_domain_name" {
 }
 
 output "cloudfront_api_url" {
-  description = "HTTPS URL of the API CloudFront distribution"
+  description = "HTTPS URL of the shared web and API CloudFront distribution"
+  value       = "https://${aws_cloudfront_distribution.api.domain_name}"
+}
+
+output "web_bucket_name" {
+  description = "Private S3 bucket containing the dev web application"
+  value       = aws_s3_bucket.web.id
+}
+
+output "web_bucket_arn" {
+  description = "ARN of the private dev web application bucket"
+  value       = aws_s3_bucket.web.arn
+}
+
+output "web_url" {
+  description = "CloudFront URL for the dev web application"
   value       = "https://${aws_cloudfront_distribution.api.domain_name}"
 }

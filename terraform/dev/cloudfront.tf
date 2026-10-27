@@ -7,6 +7,10 @@ data "aws_cloudfront_cache_policy" "caching_disabled" {
   name = "Managed-CachingDisabled"
 }
 
+data "aws_cloudfront_cache_policy" "caching_optimized" {
+  name = "Managed-CachingOptimized"
+}
+
 data "aws_cloudfront_origin_request_policy" "all_viewer_except_host_header" {
   name = "Managed-AllViewerExceptHostHeader"
 }
@@ -42,13 +46,25 @@ resource "aws_cloudfront_vpc_origin" "api" {
   ]
 }
 
-# CloudFront Distribution for the API
+# CloudFront Distribution for the web application and API
 resource "aws_cloudfront_distribution" "api" {
-  enabled         = true
-  is_ipv6_enabled = true
-  comment         = "ZOOP API distribution for the internal ALB"
-  price_class     = "PriceClass_200"
-  http_version    = "http2and3"
+  enabled             = true
+  is_ipv6_enabled     = true
+  comment             = "ZOOP web and API distribution"
+  default_root_object = "index.html"
+  price_class         = "PriceClass_200"
+  http_version        = "http2and3"
+
+  origin {
+    domain_name = aws_s3_bucket.web.bucket_regional_domain_name
+    origin_id   = local.cloudfront_web_origin_id
+
+    origin_access_control_id = aws_cloudfront_origin_access_control.web.id
+
+    s3_origin_config {
+      origin_access_identity = ""
+    }
+  }
 
   origin {
     domain_name = aws_lb.api.dns_name
@@ -62,6 +78,32 @@ resource "aws_cloudfront_distribution" "api" {
   }
 
   default_cache_behavior {
+    target_origin_id       = local.cloudfront_web_origin_id
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
+
+    allowed_methods = [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ]
+
+    cached_methods = [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ]
+
+    cache_policy_id = data.aws_cloudfront_cache_policy.caching_optimized.id
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.web_spa_rewrite.arn
+    }
+  }
+
+  ordered_cache_behavior {
+    path_pattern           = "/api/*"
     target_origin_id       = local.cloudfront_origin_id
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
@@ -86,6 +128,28 @@ resource "aws_cloudfront_distribution" "api" {
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host_header.id
   }
 
+  ordered_cache_behavior {
+    path_pattern           = "/health"
+    target_origin_id       = local.cloudfront_origin_id
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
+
+    allowed_methods = [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ]
+
+    cached_methods = [
+      "GET",
+      "HEAD"
+    ]
+
+    cache_policy_id = data.aws_cloudfront_cache_policy.caching_disabled.id
+
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host_header.id
+  }
+
   restrictions {
     geo_restriction {
       restriction_type = "none"
@@ -97,7 +161,7 @@ resource "aws_cloudfront_distribution" "api" {
   }
 
   tags = {
-    Name    = "${local.ecs_name}-api-cloudfront"
-    Service = "api"
+    Name    = "${local.ecs_name}-cloudfront"
+    Service = "web-api"
   }
 }
