@@ -48,7 +48,19 @@ resource "aws_ecs_task_definition" "api" {
           value = "dev-v1"
         },
         {
+          name  = "ZOOP_API_CORS_ALLOWED_ORIGINS"
+          value = "https://localhost:5194"
+        },
+        {
+          name  = "ZOOP_AUTH_ALLOWED_ORIGINS"
+          value = "https://localhost:5194"
+        },
+        {
           name  = "ZOOP_AI_CLIENT_ENABLED"
+          value = "false"
+        },
+        {
+          name  = "ZOOP_AI_CHAT_CLIENT_ENABLED"
           value = "false"
         },
         {
