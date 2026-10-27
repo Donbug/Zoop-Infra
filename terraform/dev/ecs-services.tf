@@ -1,6 +1,19 @@
 locals {
   api_container_name = "api"
   ai_container_name  = "ai"
+
+  api_cors_allowed_origins = [
+    "https://dwihu34r1u7th.cloudfront.net",
+    "https://localhost:5194",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://[::1]:5173",
+  ]
+
+  api_auth_allowed_origins = [
+    "https://dwihu34r1u7th.cloudfront.net",
+    "https://localhost:5194",
+  ]
 }
 
 # API Task Definition
@@ -49,11 +62,11 @@ resource "aws_ecs_task_definition" "api" {
         },
         {
           name  = "ZOOP_API_CORS_ALLOWED_ORIGINS"
-          value = "https://localhost:5194"
+          value = join(",", local.api_cors_allowed_origins)
         },
         {
           name  = "ZOOP_AUTH_ALLOWED_ORIGINS"
-          value = "https://localhost:5194"
+          value = join(",", local.api_auth_allowed_origins)
         },
         {
           name  = "ZOOP_AI_CLIENT_ENABLED"
