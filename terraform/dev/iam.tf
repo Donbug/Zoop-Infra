@@ -144,3 +144,25 @@ resource "aws_iam_role_policy" "ai_efs_access" {
   role   = aws_iam_role.ai_task.id
   policy = data.aws_iam_policy_document.ai_efs_access.json
 }
+
+data "aws_iam_policy_document" "ai_ecs_exec" {
+  statement {
+    sid    = "UseEcsExecChannels"
+    effect = "Allow"
+
+    actions = [
+      "ssmmessages:CreateControlChannel",
+      "ssmmessages:CreateDataChannel",
+      "ssmmessages:OpenControlChannel",
+      "ssmmessages:OpenDataChannel"
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "ai_ecs_exec" {
+  name   = "${local.ecs_name}-ai-ecs-exec"
+  role   = aws_iam_role.ai_task.id
+  policy = data.aws_iam_policy_document.ai_ecs_exec.json
+}
