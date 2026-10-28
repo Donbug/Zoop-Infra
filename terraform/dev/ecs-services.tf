@@ -145,6 +145,10 @@ resource "aws_ecs_task_definition" "ai" {
       image     = "${aws_ecr_repository.service["ai"].repository_url}:${var.ai_image_tag}"
       essential = true
 
+      linuxParameters = {
+        initProcessEnabled = true
+      }
+
       portMappings = [
         {
           name          = "ai-http"
@@ -246,6 +250,7 @@ resource "aws_ecs_task_definition" "ai" {
   depends_on = [
     aws_iam_role_policy.ai_runtime_secret_access,
     aws_iam_role_policy.ai_efs_access,
+    aws_iam_role_policy.ai_ecs_exec,
     aws_secretsmanager_secret_version.ai_auth
   ]
 
