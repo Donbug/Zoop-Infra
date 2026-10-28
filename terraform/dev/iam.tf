@@ -91,3 +91,56 @@ resource "aws_iam_role_policy" "api_runtime_secret_access" {
   role   = aws_iam_role.api_task_execution.id
   policy = data.aws_iam_policy_document.api_runtime_secret_access.json
 }
+
+data "aws_iam_policy_document" "ai_runtime_secret_access" {
+  statement {
+    sid    = "ReadAiRuntimeSecrets"
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+
+    resources = [
+      aws_secretsmanager_secret.ai_auth.arn
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ai_runtime_secret_access" {
+  name   = "${local.ecs_name}-ai-runtime-secret-access"
+  role   = aws_iam_role.ai_task_execution.id
+  policy = data.aws_iam_policy_document.ai_runtime_secret_access.json
+}
+
+data "aws_iam_policy_document" "ai_efs_access" {
+  statement {
+    sid    = "MountAiStateFileSystem"
+    effect = "Allow"
+
+    actions = [
+      "elasticfilesystem:ClientMount",
+      "elasticfilesystem:ClientWrite"
+    ]
+
+    resources = [
+      aws_efs_file_system.ai_state.arn
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "elasticfilesystem:AccessPointArn"
+
+      values = [
+        aws_efs_access_point.ai_service_state.arn,
+        aws_efs_access_point.ai_worker_state.arn
+      ]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "ai_efs_access" {
+  name   = "${local.ecs_name}-ai-efs-access"
+  role   = aws_iam_role.ai_task.id
+  policy = data.aws_iam_policy_document.ai_efs_access.json
+}

@@ -155,6 +155,52 @@ resource "aws_ecs_task_definition" "ai" {
         }
       ]
 
+      environment = [
+        {
+          name  = "ZOOP_AI_SERVICE_PORT"
+          value = tostring(var.ai_container_port)
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_STATE_DIR"
+          value = "/var/lib/zoop-ai/service"
+        },
+        {
+          name  = "ZOOP_AI_WORKER_STATE_DIR"
+          value = "/var/lib/zoop-ai/worker"
+        }
+      ]
+
+      secrets = [
+        {
+          name      = "ZOOP_AI_SERVICE_PRINCIPALS"
+          valueFrom = "${aws_secretsmanager_secret.ai_auth.arn}:service_principals::"
+        }
+      ]
+
+      mountPoints = [
+        {
+          sourceVolume  = "ai-service-state"
+          containerPath = "/var/lib/zoop-ai/service"
+          readOnly      = false
+        },
+        {
+          sourceVolume  = "ai-worker-state"
+          containerPath = "/var/lib/zoop-ai/worker"
+          readOnly      = false
+        }
+      ]
+
+      healthCheck = {
+        command = [
+          "CMD-SHELL",
+          "/opt/zoop/service/.venv/bin/python -c \"import socket; connection=socket.create_connection(('127.0.0.1', ${var.ai_container_port}), 3); connection.close()\""
+        ]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 30
+      }
+
       logConfiguration = {
         logDriver = "awslogs"
 
@@ -166,6 +212,42 @@ resource "aws_ecs_task_definition" "ai" {
       }
     }
   ])
+
+  volume {
+    name = "ai-service-state"
+
+    efs_volume_configuration {
+      file_system_id     = aws_efs_file_system.ai_state.id
+      root_directory     = "/"
+      transit_encryption = "ENABLED"
+
+      authorization_config {
+        access_point_id = aws_efs_access_point.ai_service_state.id
+        iam             = "ENABLED"
+      }
+    }
+  }
+
+  volume {
+    name = "ai-worker-state"
+
+    efs_volume_configuration {
+      file_system_id     = aws_efs_file_system.ai_state.id
+      root_directory     = "/"
+      transit_encryption = "ENABLED"
+
+      authorization_config {
+        access_point_id = aws_efs_access_point.ai_worker_state.id
+        iam             = "ENABLED"
+      }
+    }
+  }
+
+  depends_on = [
+    aws_iam_role_policy.ai_runtime_secret_access,
+    aws_iam_role_policy.ai_efs_access,
+    aws_secretsmanager_secret_version.ai_auth
+  ]
 
   tags = {
     Name    = "${local.ecs_name}-ai"
@@ -268,6 +350,12 @@ resource "aws_ecs_service" "ai" {
       }
     }
   }
+
+  depends_on = [
+    aws_efs_mount_target.ai_state_a,
+    aws_efs_mount_target.ai_state_c,
+    aws_vpc_security_group_ingress_rule.ai_efs_from_ai
+  ]
 
   tags = {
     Name    = "${local.ecs_name}-ai"
