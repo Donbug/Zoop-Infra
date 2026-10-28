@@ -196,7 +196,8 @@ data "aws_iam_policy_document" "github_actions_image_stage" {
     ]
 
     resources = [
-      aws_ecr_repository.service["api"].arn
+      aws_ecr_repository.service["api"].arn,
+      aws_ecr_repository.service["ai"].arn
     ]
   }
 }
