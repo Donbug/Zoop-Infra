@@ -262,3 +262,24 @@ resource "aws_iam_role_policy" "ai_collection_ecs_exec" {
   role   = aws_iam_role.ai_collection_task.id
   policy = data.aws_iam_policy_document.ai_collection_ecs_exec.json
 }
+
+data "aws_iam_policy_document" "ai_collection_runtime_secret_access" {
+  statement {
+    sid    = "ReadAiCollectionRuntimeSecrets"
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+
+    resources = [
+      aws_secretsmanager_secret.ai_collection.arn
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ai_collection_runtime_secret_access" {
+  name   = "${local.ecs_name}-ai-collection-runtime-secret-access"
+  role   = aws_iam_role.ai_collection_task_execution.id
+  policy = data.aws_iam_policy_document.ai_collection_runtime_secret_access.json
+}
