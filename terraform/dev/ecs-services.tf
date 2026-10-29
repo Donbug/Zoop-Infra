@@ -98,6 +98,30 @@ resource "aws_ecs_task_definition" "api" {
         {
           name      = "ZOOP_AUTH_CSRF_KEYS"
           valueFrom = aws_secretsmanager_secret.api_csrf.arn
+        },
+        {
+          name      = "ZOOP_AUTH_SOCIAL_GOOGLE_CLIENT_ID"
+          valueFrom = "${aws_secretsmanager_secret.api_social_login.arn}:ZOOP_AUTH_SOCIAL_GOOGLE_CLIENT_ID::"
+        },
+        {
+          name      = "ZOOP_AUTH_SOCIAL_GOOGLE_CLIENT_SECRET"
+          valueFrom = "${aws_secretsmanager_secret.api_social_login.arn}:ZOOP_AUTH_SOCIAL_GOOGLE_CLIENT_SECRET::"
+        },
+        {
+          name      = "ZOOP_AUTH_SOCIAL_KAKAO_CLIENT_ID"
+          valueFrom = "${aws_secretsmanager_secret.api_social_login.arn}:ZOOP_AUTH_SOCIAL_KAKAO_CLIENT_ID::"
+        },
+        {
+          name      = "ZOOP_AUTH_SOCIAL_KAKAO_CLIENT_SECRET"
+          valueFrom = "${aws_secretsmanager_secret.api_social_login.arn}:ZOOP_AUTH_SOCIAL_KAKAO_CLIENT_SECRET::"
+        },
+        {
+          name      = "ZOOP_TOSS_CLIENT_ID"
+          valueFrom = "${aws_secretsmanager_secret.api_toss.arn}:ZOOP_TOSS_CLIENT_ID::"
+        },
+        {
+          name      = "ZOOP_TOSS_CLIENT_SECRET"
+          valueFrom = "${aws_secretsmanager_secret.api_toss.arn}:ZOOP_TOSS_CLIENT_SECRET::"
         }
       ]
 
