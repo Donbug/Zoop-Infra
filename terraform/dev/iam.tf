@@ -168,3 +168,97 @@ resource "aws_iam_role_policy" "ai_ecs_exec" {
   role   = aws_iam_role.ai_task.id
   policy = data.aws_iam_policy_document.ai_ecs_exec.json
 }
+
+# -------------------------------------------------------------------
+# AI Collection Task IAM roles
+# -------------------------------------------------------------------
+
+resource "aws_iam_role" "ai_collection_task_execution" {
+  name               = "${local.ecs_name}-ai-collection-task-execution-role"
+  description        = "Allows ECS to pull the AI collection image and publish container logs"
+  assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume_role.json
+
+  tags = {
+    Name    = "${local.ecs_name}-ai-collection-task-execution-role"
+    Service = "ai-collection"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "ai_collection_task_execution" {
+  role       = aws_iam_role.ai_collection_task_execution.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role" "ai_collection_task" {
+  name               = "${local.ecs_name}-ai-collection-task-role"
+  description        = "IAM role assumed by the ZOOP AI collection container"
+  assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume_role.json
+
+  tags = {
+    Name    = "${local.ecs_name}-ai-collection-task-role"
+    Service = "ai-collection"
+  }
+}
+
+data "aws_iam_policy_document" "ai_collection_s3_access" {
+  statement {
+    sid    = "AccessAiCollectionBucket"
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListBucket",
+      "s3:ListBucketVersions"
+    ]
+
+    resources = [
+      aws_s3_bucket.ai_collection.arn
+    ]
+  }
+
+  statement {
+    sid    = "ReadWriteAiCollectionObjects"
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:GetObjectVersion",
+      "s3:PutObject",
+      "s3:DeleteObject",
+      "s3:AbortMultipartUpload",
+      "s3:ListMultipartUploadParts"
+    ]
+
+    resources = [
+      "${aws_s3_bucket.ai_collection.arn}/*"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ai_collection_s3_access" {
+  name   = "${local.ecs_name}-ai-collection-s3-access"
+  role   = aws_iam_role.ai_collection_task.id
+  policy = data.aws_iam_policy_document.ai_collection_s3_access.json
+}
+
+data "aws_iam_policy_document" "ai_collection_ecs_exec" {
+  statement {
+    sid    = "UseEcsExecChannels"
+    effect = "Allow"
+
+    actions = [
+      "ssmmessages:CreateControlChannel",
+      "ssmmessages:CreateDataChannel",
+      "ssmmessages:OpenControlChannel",
+      "ssmmessages:OpenDataChannel"
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "ai_collection_ecs_exec" {
+  name   = "${local.ecs_name}-ai-collection-ecs-exec"
+  role   = aws_iam_role.ai_collection_task.id
+  policy = data.aws_iam_policy_document.ai_collection_ecs_exec.json
+}
