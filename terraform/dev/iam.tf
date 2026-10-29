@@ -82,7 +82,6 @@ data "aws_iam_policy_document" "api_runtime_secret_access" {
     resources = [
       aws_db_instance.postgres.master_user_secret[0].secret_arn,
       aws_secretsmanager_secret.api_csrf.arn,
-      aws_secretsmanager_secret.api_csrf.arn,
       aws_secretsmanager_secret.api_social_login.arn,
       aws_secretsmanager_secret.api_toss.arn
     ]
