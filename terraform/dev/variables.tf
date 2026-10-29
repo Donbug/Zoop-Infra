@@ -138,7 +138,7 @@ variable "api_image_tag" {
 variable "api_desired_count" {
   description = "Desired number of API ECS tasks"
   type        = number
-  default     = 0
+  default     = 1
 }
 
 # AI ECS Task
