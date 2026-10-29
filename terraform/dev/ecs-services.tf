@@ -350,6 +350,12 @@ resource "aws_ecs_service" "ai" {
   enable_execute_command = true
   propagate_tags         = "SERVICE"
 
+  lifecycle {
+    ignore_changes = [
+      task_definition
+    ]
+  }
+
   deployment_circuit_breaker {
     enable   = true
     rollback = true
