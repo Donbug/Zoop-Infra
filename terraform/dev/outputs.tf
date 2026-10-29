@@ -1,5 +1,5 @@
 output "ecr_repository_urls" {
-  description = "Repository URLs for the API and AI container images"
+  description = "Repository URLs for the API, AI, and AI collection container images"
 
   value = {
     for service, repository in aws_ecr_repository.service :
@@ -28,7 +28,7 @@ output "service_connect_namespace_arn" {
 }
 
 output "ecs_log_group_names" {
-  description = "CloudWatch log group names for ECS services"
+  description = "CloudWatch log group names for ECS workloads"
   value = {
     for service, log_group in aws_cloudwatch_log_group.ecs :
     service => log_group.name
@@ -197,4 +197,28 @@ output "web_bucket_arn" {
 output "web_url" {
   description = "CloudFront URL for the dev web application"
   value       = "https://${aws_cloudfront_distribution.api.domain_name}"
+}
+output "ai_collection_bucket_name" {
+  description = "Private S3 bucket for AI collection results and checkpoints"
+  value       = aws_s3_bucket.ai_collection.id
+}
+
+output "ai_collection_bucket_arn" {
+  description = "ARN of the private AI collection bucket"
+  value       = aws_s3_bucket.ai_collection.arn
+}
+
+output "ai_collection_task_execution_role_arn" {
+  description = "AI collection ECS task execution role ARN"
+  value       = aws_iam_role.ai_collection_task_execution.arn
+}
+
+output "ai_collection_task_role_arn" {
+  description = "AI collection ECS task role ARN"
+  value       = aws_iam_role.ai_collection_task.arn
+}
+
+output "ai_collection_security_group_id" {
+  description = "Security group ID for the AI collection one-off task"
+  value       = aws_security_group.ai_collection.id
 }

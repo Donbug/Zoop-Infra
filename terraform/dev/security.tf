@@ -149,6 +149,29 @@ resource "aws_vpc_security_group_ingress_rule" "rds_from_ai" {
 }
 
 # -------------------------------------------------------------------
+# AI Collection one-off Fargate Task
+# 외부에서 들어오는 연결은 허용하지 않고 수집 작업의 아웃바운드만 허용한다.
+# -------------------------------------------------------------------
+
+resource "aws_security_group" "ai_collection" {
+  name        = "${var.project_name}-${var.environment}-ai-collection-sg"
+  description = "Security group for the AI collection one-off Fargate task"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name    = "${var.project_name}-${var.environment}-ai-collection-sg"
+    Service = "ai-collection"
+  }
+}
+
+resource "aws_vpc_security_group_egress_rule" "ai_collection_all_egress" {
+  security_group_id = aws_security_group.ai_collection.id
+  description       = "Allow AI collection outbound traffic for AWS and external sources"
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+}
+
+# -------------------------------------------------------------------
 # Neo4j EC2
 # 초기 Dev 환경에서는 API/BFF와 AI 서비스의 직접 연결을 허용하지 않는다.
 # Writer 운영자는 Session Manager 포트 포워딩을 통해서만 접근한다.
