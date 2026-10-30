@@ -222,3 +222,8 @@ output "ai_collection_security_group_id" {
   description = "Security group ID for the AI collection one-off task"
   value       = aws_security_group.ai_collection.id
 }
+
+output "ai_collection_task_definition_arn" {
+  description = "ARN of the AI collection one-off ECS task definition"
+  value       = aws_ecs_task_definition.ai_collection.arn
+}
