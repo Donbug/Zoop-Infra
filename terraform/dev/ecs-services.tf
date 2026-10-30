@@ -69,6 +69,10 @@ resource "aws_ecs_task_definition" "api" {
           value = join(",", local.api_auth_allowed_origins)
         },
         {
+          name  = "ZOOP_AUTH_SOCIAL_FRONTEND_ORIGIN"
+          value = var.api_social_frontend_origin
+        },
+        {
           name  = "ZOOP_AUTH_SOCIAL_GOOGLE_REDIRECT_URI"
           value = var.api_social_google_redirect_uri
         },
