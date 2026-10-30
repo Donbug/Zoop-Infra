@@ -123,6 +123,26 @@ variable "api_task_cpu" {
   default     = 512
 }
 
+variable "api_social_google_redirect_uri" {
+  description = "Google OAuth redirect URI for the API"
+  type        = string
+
+  validation {
+    condition     = trimspace(var.api_social_google_redirect_uri) != ""
+    error_message = "Google OAuth redirect URI must not be empty."
+  }
+}
+
+variable "api_social_kakao_redirect_uri" {
+  description = "Kakao OAuth redirect URI for the API"
+  type        = string
+
+  validation {
+    condition     = trimspace(var.api_social_kakao_redirect_uri) != ""
+    error_message = "Kakao OAuth redirect URI must not be empty."
+  }
+}
+
 variable "api_task_memory" {
   description = "Memory in MiB for the API ECS task"
   type        = number

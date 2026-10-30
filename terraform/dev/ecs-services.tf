@@ -69,6 +69,14 @@ resource "aws_ecs_task_definition" "api" {
           value = join(",", local.api_auth_allowed_origins)
         },
         {
+          name  = "ZOOP_AUTH_SOCIAL_GOOGLE_REDIRECT_URI"
+          value = var.api_social_google_redirect_uri
+        },
+        {
+          name  = "ZOOP_AUTH_SOCIAL_KAKAO_REDIRECT_URI"
+          value = var.api_social_kakao_redirect_uri
+        },
+        {
           name  = "ZOOP_AI_CLIENT_ENABLED"
           value = "false"
         },
