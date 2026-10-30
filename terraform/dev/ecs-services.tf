@@ -81,6 +81,10 @@ resource "aws_ecs_task_definition" "api" {
           value = var.api_social_kakao_redirect_uri
         },
         {
+          name  = "ZOOP_GRAPH_SNAPSHOT_SOURCE"
+          value = "fixture"
+        },
+        {
           name  = "ZOOP_AI_CLIENT_ENABLED"
           value = "false"
         },
