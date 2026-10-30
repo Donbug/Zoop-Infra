@@ -123,6 +123,16 @@ variable "api_task_cpu" {
   default     = 512
 }
 
+variable "api_social_frontend_origin" {
+  description = "Frontend origin used after completing social authentication"
+  type        = string
+
+  validation {
+    condition     = trimspace(var.api_social_frontend_origin) != ""
+    error_message = "Social-auth frontend origin must not be empty."
+  }
+}
+
 variable "api_social_google_redirect_uri" {
   description = "Google OAuth redirect URI for the API"
   type        = string

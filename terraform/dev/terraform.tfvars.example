@@ -1,5 +1,7 @@
 aws_region   = "ap-northeast-2"
 project_name = "zoop"
 environment  = "dev"
+
+api_social_frontend_origin     = "https://example.com"
 api_social_google_redirect_uri = "https://example.com/login/oauth2/code/google"
 api_social_kakao_redirect_uri  = "https://example.com/login/oauth2/code/kakao"
