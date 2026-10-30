@@ -49,7 +49,30 @@ powershell -ExecutionPolicy Bypass -File `
 - Stop timeout: 120초
 
 ### 4. 수동 RunTask 실행
-Task Definition 확정 후 작성
+## Smoke Test 기록
+
+### 2026-10-30: AI Collection status RunTask 검증
+
+AI Collection one-off Fargate Task Definition 등록 후 `status` 명령으로 smoke test를 수행했다.
+
+- Task Definition: `zoop-dev-ai-collection:1`
+- 실행 방식: standalone `RunTask`
+- 실행 명령: `status`
+- Subnet: private app subnets
+- Public IP: disabled
+- Security Group: `zoop-dev-ai-collection-sg`
+- Task 결과: `STOPPED`
+- ExitCode: `0`
+- StopCode: `EssentialContainerExited`
+- CloudWatch Logs 확인 완료
+- `RUNNING` Task 없음
+- `PENDING` Task 없음
+
+CloudWatch Logs:
+
+```text
+{"controller": "none"}
+```
 
 ### 5. CloudWatch 로그 확인
 Task Definition 확정 후 작성
