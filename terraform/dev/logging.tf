@@ -1,8 +1,9 @@
 locals {
   ecs_log_groups = {
-    api             = "/ecs/${local.ecs_name}/api"
-    ai              = "/ecs/${local.ecs_name}/ai"
-    "ai-collection" = "/ecs/${local.ecs_name}/ai-collection"
+    api               = "/ecs/${local.ecs_name}/api"
+    ai                = "/ecs/${local.ecs_name}/ai"
+    "ai-collection"   = "/ecs/${local.ecs_name}/ai-collection"
+    "first47-staging" = "/ecs/${local.ecs_name}/first47-staging"
   }
 }
 

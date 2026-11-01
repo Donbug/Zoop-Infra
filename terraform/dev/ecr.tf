@@ -1,9 +1,10 @@
 # API와 AI 컨테이너 이미지 저장소 이름
 locals {
   ecr_repositories = {
-    api             = lower("${var.project_name}-${var.environment}-api")
-    ai              = lower("${var.project_name}-${var.environment}-ai")
-    "ai-collection" = lower("${var.project_name}-${var.environment}-ai-collection")
+    api               = lower("${var.project_name}-${var.environment}-api")
+    ai                = lower("${var.project_name}-${var.environment}-ai")
+    "ai-collection"   = lower("${var.project_name}-${var.environment}-ai-collection")
+    "first47-staging" = lower("${var.project_name}-${var.environment}-first47-staging")
   }
 }
 

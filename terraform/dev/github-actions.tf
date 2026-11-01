@@ -93,8 +93,8 @@ data "aws_iam_policy_document" "github_actions_deploy" {
     ]
 
     resources = [
-      for repository in aws_ecr_repository.service :
-      repository.arn
+      aws_ecr_repository.service["api"].arn,
+      aws_ecr_repository.service["ai"].arn
     ]
   }
 
