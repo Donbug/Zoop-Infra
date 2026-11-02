@@ -1,0 +1,131 @@
+﻿name: First47 Staging Image
+
+on:
+  pull_request:
+    paths:
+      - "first47-staging/**"
+      - ".github/workflows/first47-staging-image.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "first47-staging/**"
+      - ".github/workflows/first47-staging-image.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: first47-staging-image-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ap-northeast-2
+  AWS_ACCOUNT_ID: "512138915880"
+  ECR_REPOSITORY: zoop-dev-first47-staging
+  AWS_ROLE_ARN: arn:aws:iam::512138915880:role/zoop-dev-first47-image-stage-role
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Build linux amd64 image
+        run: |
+          set -euo pipefail
+          docker build \
+            --platform linux/amd64 \
+            --provenance=false \
+            --tag zoop-first47-staging:test \
+            ./first47-staging
+
+      - name: Verify image architecture
+        run: |
+          set -euo pipefail
+          test "$(docker image inspect zoop-first47-staging:test --format '{{.Os}}/{{.Architecture}}')" = "linux/amd64"
+
+      - name: Run unit tests
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            --platform linux/amd64 \
+            --entrypoint python \
+            --volume "$PWD/first47-staging/app:/work/app:ro" \
+            --volume "$PWD/first47-staging/tests:/work/tests:ro" \
+            --workdir /work \
+            zoop-first47-staging:test \
+            -m unittest discover -s tests -v
+
+  publish:
+    name: Publish immutable image
+    needs:
+      - test
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      IMAGE_TAG: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          role-session-name: first47-staging-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2.1.7
+
+      - name: Build and push image
+        id: publish
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          registry="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          image="${registry}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+
+          docker build \
+            --platform linux/amd64 \
+            --provenance=false \
+            --tag "${image}" \
+            ./first47-staging
+
+          docker push "${image}"
+
+          digest="$(
+            aws ecr describe-images \
+              --repository-name "${ECR_REPOSITORY}" \
+              --image-ids "imageTag=${IMAGE_TAG}" \
+              --region "${AWS_REGION}" \
+              --query 'imageDetails[0].imageDigest' \
+              --output text
+          )"
+
+          if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "Invalid ECR digest: ${digest}" >&2
+            exit 1
+          fi
+
+          {
+            echo "### first47 staging image"
+            echo
+            echo "- Image: \`${registry}/${ECR_REPOSITORY}@${digest}\`"
+            echo "- Tag: \`${IMAGE_TAG}\`"
+            echo "- Source commit: \`${GITHUB_SHA}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
