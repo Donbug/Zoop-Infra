@@ -195,3 +195,10 @@ variable "ai_desired_count" {
   type        = number
   default     = 0
 }
+
+variable "first47_ai_client_token_secret_arn" {
+  description = "Optional Secrets Manager ARN containing the AI handoffer principal token for first47 B1/B3."
+  type        = string
+  default     = null
+  nullable    = true
+}
