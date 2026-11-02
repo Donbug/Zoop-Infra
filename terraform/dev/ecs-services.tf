@@ -82,7 +82,19 @@ resource "aws_ecs_task_definition" "api" {
         },
         {
           name  = "ZOOP_GRAPH_SNAPSHOT_SOURCE"
-          value = "fixture"
+          value = "artifact"
+        },
+        {
+          name  = "ZOOP_GRAPH_SNAPSHOT_ARTIFACT_ROOT"
+          value = "/mnt/zoop-artifacts"
+        },
+        {
+          name  = "ZOOP_DOCUMENT_READ_INGESTION_SOURCES"
+          value = "/mnt/zoop-authority/serving-authorities.json"
+        },
+        {
+          name  = "ZOOP_DOCUMENT_READ_ARTIFACT_ROOT"
+          value = "/mnt/zoop-artifacts"
         },
         {
           name  = "ZOOP_AI_CLIENT_ENABLED"
@@ -141,6 +153,19 @@ resource "aws_ecs_task_definition" "api" {
         }
       ]
 
+      mountPoints = [
+        {
+          sourceVolume  = "first47-artifacts"
+          containerPath = "/mnt/zoop-artifacts"
+          readOnly      = true
+        },
+        {
+          sourceVolume  = "first47-authority"
+          containerPath = "/mnt/zoop-authority"
+          readOnly      = true
+        }
+      ]
+
       logConfiguration = {
         logDriver = "awslogs"
 
@@ -153,8 +178,39 @@ resource "aws_ecs_task_definition" "api" {
     }
   ])
 
+  volume {
+    name = "first47-artifacts"
+
+    efs_volume_configuration {
+      file_system_id     = aws_efs_file_system.ai_state.id
+      root_directory     = "/"
+      transit_encryption = "ENABLED"
+
+      authorization_config {
+        access_point_id = aws_efs_access_point.first47["artifacts"].id
+        iam             = "ENABLED"
+      }
+    }
+  }
+
+  volume {
+    name = "first47-authority"
+
+    efs_volume_configuration {
+      file_system_id     = aws_efs_file_system.ai_state.id
+      root_directory     = "/"
+      transit_encryption = "ENABLED"
+
+      authorization_config {
+        access_point_id = aws_efs_access_point.first47["authority"].id
+        iam             = "ENABLED"
+      }
+    }
+  }
+
   depends_on = [
     aws_iam_role_policy.api_runtime_secret_access,
+    aws_iam_role_policy.api_efs_access,
     aws_secretsmanager_secret_version.api_csrf
   ]
 

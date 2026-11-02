@@ -94,6 +94,37 @@ resource "aws_iam_role_policy" "api_runtime_secret_access" {
   policy = data.aws_iam_policy_document.api_runtime_secret_access.json
 }
 
+data "aws_iam_policy_document" "api_efs_access" {
+  statement {
+    sid    = "MountApiReadOnlyAccessPoints"
+    effect = "Allow"
+
+    actions = [
+      "elasticfilesystem:ClientMount"
+    ]
+
+    resources = [
+      aws_efs_file_system.ai_state.arn
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "elasticfilesystem:AccessPointArn"
+
+      values = [
+        aws_efs_access_point.first47["artifacts"].arn,
+        aws_efs_access_point.first47["authority"].arn
+      ]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "api_efs_access" {
+  name   = "${local.ecs_name}-api-efs-access"
+  role   = aws_iam_role.api_task.id
+  policy = data.aws_iam_policy_document.api_efs_access.json
+}
+
 data "aws_iam_policy_document" "ai_runtime_secret_access" {
   statement {
     sid    = "ReadAiRuntimeSecrets"
