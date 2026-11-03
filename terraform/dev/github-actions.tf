@@ -71,6 +71,51 @@ resource "aws_iam_role" "github_actions_deploy" {
 
 data "aws_iam_policy_document" "github_actions_deploy" {
   statement {
+    sid    = "ListWebDeploymentBucket"
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListBucket"
+    ]
+
+    resources = [
+      aws_s3_bucket.web.arn
+    ]
+  }
+
+  statement {
+    sid    = "DeployWebObjects"
+    effect = "Allow"
+
+    actions = [
+      "s3:AbortMultipartUpload",
+      "s3:DeleteObject",
+      "s3:GetObject",
+      "s3:ListMultipartUploadParts",
+      "s3:PutObject"
+    ]
+
+    resources = [
+      "${aws_s3_bucket.web.arn}/*"
+    ]
+  }
+
+  statement {
+    sid    = "InvalidateWebDistribution"
+    effect = "Allow"
+
+    actions = [
+      "cloudfront:CreateInvalidation",
+      "cloudfront:GetInvalidation"
+    ]
+
+    resources = [
+      aws_cloudfront_distribution.api.arn
+    ]
+  }
+
+  statement {
     sid       = "GetECRAuthorizationToken"
     effect    = "Allow"
     actions   = ["ecr:GetAuthorizationToken"]
