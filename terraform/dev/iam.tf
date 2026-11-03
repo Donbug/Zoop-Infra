@@ -336,3 +336,114 @@ resource "aws_iam_role_policy" "ai_collection_runtime_secret_access" {
   role   = aws_iam_role.ai_collection_task_execution.id
   policy = data.aws_iam_policy_document.ai_collection_runtime_secret_access.json
 }
+
+resource "aws_iam_role" "first47_operator_execution" {
+  name               = "${local.ecs_name}-first47-operator-execution-role"
+  description        = "Allows ECS to run the first47 operator API task and inject its runtime secrets"
+  assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume_role.json
+
+  tags = {
+    Name    = "${local.ecs_name}-first47-operator-execution-role"
+    Service = "first47-operator"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "first47_operator_execution" {
+  role       = aws_iam_role.first47_operator_execution.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+data "aws_iam_policy_document" "first47_operator_runtime_secret_access" {
+  statement {
+    sid    = "ReadFirst47OperatorRuntimeSecrets"
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+
+    resources = [
+      aws_db_instance.postgres.master_user_secret[0].secret_arn,
+      aws_secretsmanager_secret.api_csrf.arn,
+      data.aws_secretsmanager_secret.first47_api_ai_token.arn
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "first47_operator_runtime_secret_access" {
+  name   = "${local.ecs_name}-first47-operator-runtime-secret-access"
+  role   = aws_iam_role.first47_operator_execution.id
+  policy = data.aws_iam_policy_document.first47_operator_runtime_secret_access.json
+}
+
+resource "aws_iam_role" "first47_operator_task" {
+  name               = "${local.ecs_name}-first47-operator-task-role"
+  description        = "IAM role assumed by the first47 operator API RunTask"
+  assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume_role.json
+
+  tags = {
+    Name    = "${local.ecs_name}-first47-operator-task-role"
+    Service = "first47-operator"
+  }
+}
+
+data "aws_iam_policy_document" "first47_operator_efs_access" {
+  statement {
+    sid    = "MountAndWriteFirst47OperatorWorkspaces"
+    effect = "Allow"
+
+    actions = [
+      "elasticfilesystem:ClientMount",
+      "elasticfilesystem:ClientWrite"
+    ]
+
+    resources = [
+      aws_efs_file_system.ai_state.arn
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "elasticfilesystem:AccessPointArn"
+
+      values = [
+        aws_efs_access_point.first47["artifacts"].arn,
+        aws_efs_access_point.first47["operations"].arn
+      ]
+    }
+  }
+
+  statement {
+    sid    = "MountFirst47OperatorReadOnlyInputs"
+    effect = "Allow"
+
+    actions = [
+      "elasticfilesystem:ClientMount"
+    ]
+
+    resources = [
+      aws_efs_file_system.ai_state.arn
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "elasticfilesystem:AccessPointArn"
+
+      values = [
+        aws_efs_access_point.first47["delivery"].arn,
+        aws_efs_access_point.first47["authority"].arn
+      ]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "first47_operator_efs_access" {
+  name   = "${local.ecs_name}-first47-operator-efs-access"
+  role   = aws_iam_role.first47_operator_task.id
+  policy = data.aws_iam_policy_document.first47_operator_efs_access.json
+}
+
+resource "aws_iam_role_policy" "first47_operator_ecs_exec" {
+  name   = "${local.ecs_name}-first47-operator-ecs-exec"
+  role   = aws_iam_role.first47_operator_task.id
+  policy = data.aws_iam_policy_document.api_ecs_exec.json
+}

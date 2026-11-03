@@ -443,6 +443,10 @@ resource "aws_ecs_service" "ai" {
     assign_public_ip = false
   }
 
+  service_registries {
+    registry_arn = aws_service_discovery_service.ai_private.arn
+  }
+
   service_connect_configuration {
     enabled   = true
     namespace = aws_service_discovery_http_namespace.service_connect.arn
