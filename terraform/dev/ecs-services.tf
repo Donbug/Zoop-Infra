@@ -257,23 +257,91 @@ resource "aws_ecs_task_definition" "ai" {
 
       environment = [
         {
+          name  = "ZOOP_AI_HANDOFF_STATE_DIR"
+          value = "/srv/zoop-ai-read/archive/handoff"
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_GRANTS"
+          value = "/mnt/zoop-authority/s1-deny-all-grants.json"
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_HANDOFF_BINDINGS"
+          value = "/mnt/zoop-authority/bindings.json"
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_HANDOFF_CANONICAL"
+          value = "/mnt/zoop-authority/canonical.json"
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_HANDOFF_COMMAND"
+          value = "/opt/zoop/pipeline/.venv/bin/zoop-ai-handoff"
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_HANDOFF_DECISIONS"
+          value = "/mnt/zoop-authority/decisions.json"
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_HANDOFF_EXPORTS"
+          value = "/mnt/zoop-authority/handoff-exports.json"
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_HANDOFF_SOURCE_CONTEXTS"
+          value = "/mnt/zoop-authority/source-contexts.json"
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_HANDOFF_SOURCE_CONTEXTS_SHA256"
+          value = "3773a3acd3396fa032abce5b311c4e865208eca1aee91169369b8908468b7301"
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_HOST"
+          value = "0.0.0.0"
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_INGESTION_COMMAND"
+          value = "/opt/zoop/pipeline/.venv/bin/zoop-ai-ingest"
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_OBSERVATION_SOURCE_CONTEXTS"
+          value = "/mnt/zoop-authority/source-contexts.json"
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_OBSERVATION_SOURCE_CONTEXTS_SHA256"
+          value = "3773a3acd3396fa032abce5b311c4e865208eca1aee91169369b8908468b7301"
+        },
+        {
           name  = "ZOOP_AI_SERVICE_PORT"
           value = tostring(var.ai_container_port)
         },
         {
           name  = "ZOOP_AI_SERVICE_STATE_DIR"
-          value = "/var/lib/zoop-ai/service"
+          value = "/var/lib/zoop-ai/service/import-read"
+        },
+        {
+          name  = "ZOOP_AI_SERVICE_WORKER_COMMAND"
+          value = "/opt/zoop/worker/.venv/bin/zoop-ai"
         },
         {
           name  = "ZOOP_AI_WORKER_STATE_DIR"
-          value = "/var/lib/zoop-ai/worker"
+          value = "/var/lib/zoop-ai/worker/import-read"
+        },
+        {
+          name  = "ZOOP_STATE_DIR"
+          value = "/var/lib/zoop-ai/service/import-read-app"
+        },
+        {
+          name  = "ZOOP_AI_CHAT_LIVE_ENABLED"
+          value = "0"
+        },
+        {
+          name  = "ZOOP_AI_CHAT_MAX_CALLS"
+          value = "0"
         }
       ]
 
       secrets = [
         {
           name      = "ZOOP_AI_SERVICE_PRINCIPALS"
-          valueFrom = "${aws_secretsmanager_secret.ai_auth.arn}:service_principals::"
+          valueFrom = aws_secretsmanager_secret.first47_ai_principals.arn
         }
       ]
 
@@ -287,6 +355,16 @@ resource "aws_ecs_task_definition" "ai" {
           sourceVolume  = "ai-worker-state"
           containerPath = "/var/lib/zoop-ai/worker"
           readOnly      = false
+        },
+        {
+          sourceVolume  = "first47-authority"
+          containerPath = "/mnt/zoop-authority"
+          readOnly      = true
+        },
+        {
+          sourceVolume  = "first47-ai-archive"
+          containerPath = "/srv/zoop-ai-read/archive"
+          readOnly      = true
         }
       ]
 
@@ -338,6 +416,36 @@ resource "aws_ecs_task_definition" "ai" {
 
       authorization_config {
         access_point_id = aws_efs_access_point.ai_worker_state.id
+        iam             = "ENABLED"
+      }
+    }
+  }
+
+  volume {
+    name = "first47-authority"
+
+    efs_volume_configuration {
+      file_system_id     = aws_efs_file_system.ai_state.id
+      root_directory     = "/"
+      transit_encryption = "ENABLED"
+
+      authorization_config {
+        access_point_id = aws_efs_access_point.first47["authority"].id
+        iam             = "ENABLED"
+      }
+    }
+  }
+
+  volume {
+    name = "first47-ai-archive"
+
+    efs_volume_configuration {
+      file_system_id     = aws_efs_file_system.ai_state.id
+      root_directory     = "/"
+      transit_encryption = "ENABLED"
+
+      authorization_config {
+        access_point_id = aws_efs_access_point.first47["ai_archive"].id
         iam             = "ENABLED"
       }
     }
