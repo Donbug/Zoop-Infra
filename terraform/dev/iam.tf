@@ -135,7 +135,8 @@ data "aws_iam_policy_document" "ai_runtime_secret_access" {
     ]
 
     resources = [
-      aws_secretsmanager_secret.ai_auth.arn
+      aws_secretsmanager_secret.ai_auth.arn,
+      aws_secretsmanager_secret.first47_ai_principals.arn
     ]
   }
 }
@@ -167,6 +168,29 @@ data "aws_iam_policy_document" "ai_efs_access" {
       values = [
         aws_efs_access_point.ai_service_state.arn,
         aws_efs_access_point.ai_worker_state.arn
+      ]
+    }
+  }
+
+  statement {
+    sid    = "MountFirst47AiReaderInputs"
+    effect = "Allow"
+
+    actions = [
+      "elasticfilesystem:ClientMount"
+    ]
+
+    resources = [
+      aws_efs_file_system.ai_state.arn
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "elasticfilesystem:AccessPointArn"
+
+      values = [
+        aws_efs_access_point.first47["authority"].arn,
+        aws_efs_access_point.first47["ai_archive"].arn
       ]
     }
   }
