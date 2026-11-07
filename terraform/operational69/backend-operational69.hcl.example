@@ -1,0 +1,7 @@
+# NONDEPLOYABLE EXAMPLE: the infrastructure owner must supply the actual bucket.
+# Add the approved bucket assignment in a private copy, outside the checkout.
+# The fixed state object and locking policy are also declared in versions.tf.
+key          = "zoop/dev/operational69/terraform.tfstate"
+region       = "ap-northeast-2"
+encrypt      = true
+use_lockfile = true
