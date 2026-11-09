@@ -1,0 +1,17 @@
+# NONDEPLOYABLE INPUT CHECKLIST — this file intentionally assigns no values.
+# Prepare an owner-reviewed private tfvars file from variables.tf and README.md.
+# Required variables:
+# expected_account_id, aws_region, existing, images, reader_python, database,
+# archive, authority, profiles.
+#
+# existing identifies the exact VPC, two private subnets, cluster, namespace,
+# encrypted filesystem, EFS/RDS security groups and four existing APs.
+# images contains full reader/operator repository@sha256 pins and repository ARNs.
+# database contains metadata references, not credentials or secret payloads.
+# archive supplies tar/manifest EFS source paths and both trusted SHA-256 values.
+# authority supplies reviewed materialized current paths, inventory SHA and principal.
+# profiles has exactly existing2, six, three and eu11, with distinct fresh result paths.
+# Initially omit each optional handoff object; enable only a later complete reviewed group.
+#
+# Format-valid synthetic examples live exclusively in tests/contracts.tftest.hcl.
+# They are mocked test inputs, not deployment values or authority materialization.

@@ -37,6 +37,8 @@ jobs:
             directory: terraform/bootstrap
           - component: dev
             directory: terraform/dev
+          - component: operational69
+            directory: terraform/operational69
 
     steps:
       - name: Checkout repository
@@ -59,3 +61,19 @@ jobs:
 
       - name: Validate configuration
         run: terraform -chdir="${{ matrix.directory }}" validate -no-color
+
+      - name: Plan mocked operational69 contracts
+        if: matrix.component == 'operational69'
+        env:
+          AWS_EC2_METADATA_DISABLED: "true"
+          AWS_ACCESS_KEY_ID: ""
+          AWS_SECRET_ACCESS_KEY: ""
+          AWS_SESSION_TOKEN: ""
+          AWS_PROFILE: ""
+        run: terraform -chdir="${{ matrix.directory }}" test -no-color
+
+      - name: Exercise synthetic operational69 scripts
+        if: matrix.component == 'operational69'
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 -m unittest discover -s "${{ matrix.directory }}/tests" -p 'test_*.py' -v
