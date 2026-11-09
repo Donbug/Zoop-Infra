@@ -151,6 +151,12 @@ run "observation_only_contract" {
     error_message = "Readers must start at desired zero with exact private names."
   }
   assert {
+    condition = alltrue([for service in values(aws_service_discovery_service.reader) :
+      one(service.health_check_custom_config).failure_threshold == 1
+    ])
+    error_message = "Reader discovery services must enable the ECS-managed custom health check explicitly."
+  }
+  assert {
     condition = (
       length(local.reader_mounts) == 5 && alltrue([for m in values(local.reader_mounts) : m.ro]) &&
       local.reader_mounts.old_archive.path == "/srv/zoop-ai-read/archive" && local.reader_mounts.old_authority.path == "/mnt/zoop-authority" &&

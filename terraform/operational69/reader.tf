@@ -123,7 +123,9 @@ resource "aws_service_discovery_service" "reader" {
       type = "A"
     }
   }
-  health_check_custom_config {}
+  health_check_custom_config {
+    failure_threshold = 1
+  }
 }
 
 resource "aws_ecs_service" "reader" {
